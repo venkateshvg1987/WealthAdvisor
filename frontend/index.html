@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity Portfolio Intelligence Platform</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- ChartJS for financial charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for client-side Excel parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Firebase SDK Compatibility Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="login-container" class="login-wrapper">
+        <div class="login-glass-card">
+            <div class="login-header">
+                <div class="logo">
+                    <span class="logo-glowing-dot"></span>
+                    <h2>Portfolio Pro</h2>
+                </div>
+                <p>Secure Portfolio Intelligence for Indian Investors</p>
+            </div>
+            
+            <div class="login-form-group">
+                <label for="login-email">Username or Email</label>
+                <input type="text" id="login-email" placeholder="e.g. Admin or email@domain.com" value="Admin">
+            </div>
+            <div class="login-form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" value="Admin@123">
+            </div>
+            <button id="btn-login" class="btn btn-primary btn-full">Authenticate Access</button>
+            <div class="login-note">
+                <p>Default credentials loaded: <code>Admin</code> / <code>Admin@123</code></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="app-layout hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <span class="logo-glowing-dot"></span>
+                <h1>Portfolio Pro</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>Overall Portfolio</span>
+                </button>
+                <button class="nav-item" data-tab="stocks">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    <span>Stocks Analytics</span>
+                </button>
+                <button class="nav-item" data-tab="mutual-funds">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span>Mutual Funds</span>
+                </button>
+                <button class="nav-item" data-tab="etfs">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+                    <span>ETFs & Gold</span>
+                </button>
+                <button class="nav-item" data-tab="risk">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>Risk & Stress</span>
+                </button>
+                <button class="nav-item" data-tab="advisor">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>AI Advisor</span>
+                </button>
+                <button class="nav-item" data-tab="settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>Import & Setup</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">I</div>
+                    <div class="user-details">
+                        <span class="user-name">Investor</span>
+                        <span class="user-email">investor@platform.in</span>
+                    </div>
+                </div>
+                <button id="btn-logout" class="btn btn-logout-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Header bar -->
+            <header class="main-header">
+                <div class="header-left">
+                    <h2 id="header-tab-title">Wealth Advisor</h2>
+                    <p id="header-tab-desc">High-level asset value mapping, allocation summaries, and structural ratings.</p>
+                </div>
+                <div class="header-right">
+                    <span class="pulse-indicator">
+                        <span class="ping-dot"></span>
+                        <span class="ping-core"></span>
+                    </span>
+                    <span class="live-market-badge">Indian Markets Stable</span>
+                    <div class="glass" style="display: flex; align-items: center; gap: 8px; margin-right: 8px; padding: 6px 12px; border-radius: 8px;">
+                        <label for="portfolio-age" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Age:</label>
+                        <input type="number" id="portfolio-age" min="1" max="100" placeholder="Std" style="width: 50px; background: transparent; border: none; outline: none; font-size: 0.85rem; font-weight: 600; text-align: center; color: var(--text-primary);" title="Enter Age to dynamically re-calculate asset allocation strategy targets">
+                    </div>
+                    <select id="header-profile-select" class="header-profile-dropdown" title="Select Folio Profile">
+                        <!-- Populated dynamically -->
+                    </select>
+                    <button id="btn-theme-toggle" class="btn btn-secondary" style="padding: 8px 12px;" title="Toggle Light/Dark Theme">
+                        <svg id="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                        <svg id="theme-icon-moon" class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </button>
+                    <button id="btn-download-pdf" class="btn btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span>PDF Report</span>
+                    </button>
+                    <button id="btn-download-excel" class="btn btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        <span>Excel Export</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB CONTENT CONTAINER -->
+            <div class="content-scrollway">
+
+                <!-- 1. OVERALL DASHBOARD SHEET -->
+                <section id="tab-sheet-dashboard" class="tab-sheet">
+                    <!-- Key Statistics Grid -->
+                    <div class="metrics-summary-grid">
+                        <div class="metric-card glass">
+                            <span class="metric-label">Invested Capital</span>
+                            <h3 id="stat-invested">₹0.00</h3>
+                            <p class="metric-trend text-neutral">Cost basis capital</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">Current Valuation</span>
+                            <h3 id="stat-current">₹0.00</h3>
+                            <p id="stat-gains" class="metric-trend text-green">+₹0.00 (+0.0%)</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">Calculated CAGR</span>
+                            <h3 id="stat-cagr">0.0%</h3>
+                            <p class="metric-trend text-neutral">Annualized Growth Rate</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">Portfolio XIRR</span>
+                            <h3 id="stat-xirr">0.0%</h3>
+                            <p class="metric-trend text-neutral">Internal Rate of Return</p>
+                        </div>
+                    </div>
+
+                    <!-- Layout: Chart Columns & Risk Meter -->
+                    <div class="dashboard-columns">
+                        <!-- Allocations & Worth Trends -->
+                        <div class="column-left glass">
+                            <h4>Actual vs Recommended Asset Allocation</h4>
+                            <div class="chart-wrapper-bar" style="position: relative; height: 240px;">
+                                <canvas id="chart-asset-allocation"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Health Index Audit Card -->
+                        <div class="column-right glass flex-column justify-center align-center">
+                            <h4>Portfolio Health Rating</h4>
+                            <div class="health-dial-container">
+                                <div class="health-dial">
+                                    <div class="health-ring-glow"></div>
+                                    <span id="health-score-value">--</span>
+                                    <span class="health-score-label">Score</span>
+                                </div>
+                            </div>
+                            <div class="health-details">
+                                <p id="health-description">Seeding portfolio metrics...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Allocation Audit Table Section -->
+                    <div class="dashboard-columns mt-20">
+                        <div class="column-full glass">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div>
+                                    <h4 style="margin:0;">Asset Allocation Audit (Actual vs. Best Performing Target Strategy)</h4>
+                                    <p class="desc mt-5" style="color:var(--text-secondary); font-size:0.82rem; margin: 4px 0 0 0;">
+                                        Strategy target limits adjust dynamically based on Age <span id="audit-age-display">(Standard)</span> and Market Trend factors.
+                                    </p>
+                                </div>
+                                <div id="market-trend-indicator" class="badge badge-blue">Trend: Neutral (Nifty PE: --)</div>
+                            </div>
+                            <div class="overflow-x">
+                                <table class="table mt-10" id="table-allocation-audit" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th>Asset Category</th>
+                                            <th style="text-align: right;">Actual Value</th>
+                                            <th style="text-align: right;">Actual Allocation (%)</th>
+                                            <th style="text-align: right;">Target Strategy (%)</th>
+                                            <th style="text-align: right;">Variance (%)</th>
+                                            <th style="text-align: center;">Status / Action Required</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-columns mt-20">
+                        <div class="column-full glass">
+                            <h4>Direct &amp; Indirect Sector Exposure</h4>
+                            <div class="chart-wrapper-bar">
+                                <canvas id="chart-sector-allocation"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comprehensive Portfolio Health Audit Details -->
+                    <div class="dashboard-columns mt-20" id="overall-health-audit-section">
+                        <div class="column-full glass">
+                            <h4>Comprehensive Portfolio Health Audit (Pros &amp; Cons)</h4>
+                            <div id="overall-health-audit-details" class="health-audit-display">
+                                <div class="empty-placeholder">Evaluating portfolio health...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compounding Projection Line Graph -->
+                    <div class="dashboard-columns mt-20">
+                        <div class="column-full glass">
+                            <h4>10-Year Portfolio Compounding Projections (Future Value Projection)</h4>
+                            <p class="desc mt-5" style="color:var(--text-secondary); font-size:0.85rem; margin-bottom: 20px;">
+                                Est. compounding valuation of your current portfolio of <strong id="proj-current-val" style="color:var(--accent-blue);">₹0.00</strong> over 10 years at Conservative (8%), Balanced (12%), and Aggressive (15%) annual growth rates.
+                            </p>
+                            <div class="chart-wrapper-projection" style="position: relative; height: 320px; width: 100%;">
+                                <canvas id="chart-portfolio-projection"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. STOCKS ANALYTICS SHEET -->
+                <section id="tab-sheet-stocks" class="tab-sheet hidden">
+                    <!-- Key Stock Statistics Grid -->
+                    <div class="metrics-summary-grid" style="margin-bottom: 20px;">
+                        <div class="metric-card glass">
+                            <span class="metric-label">Total Stock Investment</span>
+                            <h3 id="stock-stat-invested">₹0.00</h3>
+                            <p class="metric-trend text-neutral">Cost basis capital</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">Current Stock Value</span>
+                            <h3 id="stock-stat-current">₹0.00</h3>
+                            <p id="stock-stat-gains" class="metric-trend text-green">+₹0.00 (+0.0%)</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">Stock Portfolio Health</span>
+                            <h3 id="stock-health-score">--</h3>
+                            <p id="stock-health-summary" class="metric-trend text-neutral">Evaluating stock diversification...</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-columns">
+                        <!-- Active stock scan indicators -->
+                        <div class="column-left glass">
+                            <h4>Real-Time Momentum Alerts</h4>
+                            <div id="stock-alerts-list" class="alert-list-container" style="max-height: 280px; overflow-y: auto;">
+                                <div class="empty-placeholder">Running scanners...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Momentum recommendations / stock ideas (NSE) -->
+                        <div class="column-right glass">
+                            <h4>NSE Momentum Breakout Ideas</h4>
+                            <div id="momentum-recommendations-list" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 2px;">
+                                <div class="empty-placeholder">Loading momentum ideas...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Health Audit Details -->
+                    <div class="dashboard-columns mt-20">
+                        <div class="column-full glass">
+                            <h4>Stock Portfolio Health Audit (Pros &amp; Cons)</h4>
+                            <div id="stock-health-audit-details" class="health-audit-display">
+                                <div class="empty-placeholder">Analyzing stock holdings...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Direct Holdings Table -->
+                    <div class="glass mt-20 p-20 overflow-x">
+                        <h4>Stock Holdings Technical & Fundamental Ledger</h4>
+                        <table class="table mt-15" id="table-stocks-ledger">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Buy Val (Cost)</th>
+                                    <th>Current Value</th>
+                                    <th>Gains / Losses</th>
+                                    <th>Stock Score</th>
+                                    <th>Recommendation</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 3. MUTUAL FUNDS SHEET -->
+                <section id="tab-sheet-mutual-funds" class="tab-sheet hidden">
+                    <!-- Statistics summary -->
+                    <div class="metrics-summary-grid">
+                        <div class="metric-card glass">
+                            <span class="metric-label">SIP Health Assessment</span>
+                            <h3 id="mf-sip-health">--</h3>
+                            <p id="mf-sip-message" class="metric-trend">Evaluating SIP transactions...</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">Total MF Investment</span>
+                            <h3 id="mf-stat-invested">₹0.00</h3>
+                            <p class="metric-trend text-neutral">Cost basis capital</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">Current MF Value</span>
+                            <h3 id="mf-stat-current">₹0.00</h3>
+                            <p id="mf-stat-gains" class="metric-trend text-green">+₹0.00 (+0.0%)</p>
+                        </div>
+                    </div>
+
+                    <!-- MF Category Allocation Strategy Chart -->
+                    <div class="dashboard-columns mt-20">
+                        <div class="column-left glass">
+                            <h4>Actual vs Recommended Mutual Fund Allocation</h4>
+                            <div class="chart-wrapper-bar" style="position: relative; height: 260px;">
+                                <canvas id="chart-mf-allocation"></canvas>
+                            </div>
+                        </div>
+                        <div class="column-right glass flex-column justify-center">
+                            <h4>Mutual Fund Allocation Audit</h4>
+                            <div id="mf-allocation-audit" style="font-size: 0.82rem; display: flex; flex-direction: column; gap: 8px;">
+                                <div class="empty-placeholder">Analyzing mutual fund allocations...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-columns mt-20">
+                        <!-- MF Pairwise Overlap -->
+                        <div class="column-left glass">
+                            <h4>Redundancy &amp; Stylistic Overlap Analysis</h4>
+                            <div id="mf-overlap-container" class="overlap-matrix-display">
+                                <div class="empty-placeholder">Analyzing mutual fund overlap...</div>
+                            </div>
+                        </div>
+
+                        <!-- Combined Stock Exposure -->
+                        <div class="column-right glass">
+                            <h4>Aggregated Underlying Stock Exposures</h4>
+                            <div id="mf-concentration-list" class="concentration-list">
+                                <div class="empty-placeholder">Analyzing stock concentration...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mutual Fund Health Audit Details -->
+                    <div class="dashboard-columns mt-20">
+                        <div class="column-full glass">
+                            <h4>Mutual Fund Portfolio Health Audit (Pros &amp; Cons)</h4>
+                            <div id="mf-health-audit-details" class="health-audit-display">
+                                <div class="empty-placeholder">Analyzing mutual fund holdings...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Direct Holdings Table -->
+                    <div class="glass mt-20 p-20 overflow-x">
+                        <h4>Mutual Fund Holdings Ledger</h4>
+                        <table class="table mt-15" id="table-mf-ledger">
+                            <thead>
+                                <tr>
+                                    <th>Scheme</th>
+                                    <th>Category</th>
+                                    <th>Invested Capital</th>
+                                    <th>Current Value</th>
+                                    <th>Gains / Losses</th>
+                                    <th>Rating &amp; Score</th>
+                                    <th>SIP Action</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Detailed Switch & PM Audits -->
+                    <div class="glass mt-20 p-20">
+                        <h4>Fund Advisor Audits &amp; Switch Strategies</h4>
+                        <p class="desc mt-5" style="color:var(--text-secondary); font-size:0.85rem; margin-bottom: 15px;">Actionable audits covering expense ratios, systematic plans, and portfolio manager allocations (similar to Powerup Money insights).</p>
+                        <div id="mf-advisor-cards" class="mf-advisor-grid">
+                            <div class="empty-placeholder">Analyzing portfolio manager allocations...</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. ETFS SHEET -->
+                <section id="tab-sheet-etfs" class="tab-sheet hidden">
+                    <!-- Statistics summary -->
+                    <div class="metrics-summary-grid" style="margin-bottom: 20px;">
+                        <div class="metric-card glass">
+                            <span class="metric-label">Total ETF Investment</span>
+                            <h3 id="etf-stat-invested">₹0.00</h3>
+                            <p class="metric-trend text-neutral">Cost basis capital</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">Current ETF Value</span>
+                            <h3 id="etf-stat-current">₹0.00</h3>
+                            <p id="etf-stat-gains" class="metric-trend text-green">+₹0.00 (+0.0%)</p>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic AI ETF Recommendations & Allocator Insights -->
+                    <div class="dashboard-columns mb-20" style="margin-bottom: 20px;">
+                        <div class="column-full glass">
+                            <h4>AI ETF Recommendations & Tracking Quality Audits</h4>
+                            <div id="etf-recommendations-insights" class="health-audit-display" style="margin-top: 10px;">
+                                <div class="empty-placeholder">Analyzing ETF holdings tracking error and liquidity metrics...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-20 overflow-x">
+                        <h4>Exchange Traded Funds (ETFs) & Commodities Analytics</h4>
+                        <table class="table mt-15" id="table-etfs-ledger">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Category</th>
+                                    <th>Invested Capital</th>
+                                    <th>Current Value</th>
+                                    <th>Gains / Losses</th>
+                                    <th>Metrics</th>
+                                    <th>AI Action Recommendation</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 5. RISK & STRESS TESTING SHEET -->
+                <section id="tab-sheet-risk" class="tab-sheet hidden">
+                    <!-- Risk Score cards -->
+                    <div class="metrics-summary-grid">
+                        <div class="metric-card glass">
+                            <span class="metric-label">Composite Risk Rating</span>
+                            <h3 id="risk-rating-value">0.0</h3>
+                            <p id="risk-rating-class" class="metric-trend text-yellow">Calculating risk profile...</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">India VIX Index</span>
+                            <h3 id="risk-stat-vix">14.5</h3>
+                            <p class="metric-trend">Market volatility index</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">Nifty Valuation PE</span>
+                            <h3 id="risk-stat-nifpe">22.8</h3>
+                            <p class="metric-trend">Benchmark multiple</p>
+                        </div>
+                        <div class="metric-card glass">
+                            <span class="metric-label">FII & DII Flows (Daily)</span>
+                            <h3 id="risk-stat-fiiflow">₹0.00 Cr</h3>
+                            <p class="metric-trend">Net institutional capital</p>
+                        </div>
+                    </div>
+
+                    <!-- Layout: Corrections Chart & Adjustments lists -->
+                    <div class="dashboard-columns mt-20">
+                        <div class="column-left glass">
+                            <h4>Stress Testing: Market Corrections Simulated Impact</h4>
+                            <div class="chart-wrapper-bar">
+                                <canvas id="chart-stress-test"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="column-right glass">
+                            <h4>Risk Score Adjustments (Market Conditions)</h4>
+                            <ul id="risk-adjustments-list" class="list-styled mt-10">
+                                <li>Loading market adjustments...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. AI ADVISOR SHEET -->
+                <section id="tab-sheet-advisor" class="tab-sheet hidden">
+                    <div class="advisor-chat-layout glass">
+                        <div class="chat-header">
+                            <div class="assistant-avatar">AI</div>
+                            <div>
+                                <h5>Antigravity Portfolio Advisor</h5>
+                                <span class="badge badge-green" id="ai-status-badge">Online | Zero-Cost Model</span>
+                            </div>
+                        </div>
+                        <div class="chat-messages-area" id="chat-messages-container">
+                            <div class="chat-msg system">
+                                <div class="msg-bubble">
+                                    Hello! I am your Antigravity Portfolio Intelligence Advisor. I have read your active holding records, sector concentration, and market risk variables. Ask me any portfolio health, risk optimization, or rebalancing questions. 
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-user-input" placeholder="e.g. Is my portfolio too heavily weighted in Financial Services?">
+                            <button id="btn-chat-send" class="btn btn-primary">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. UPLOAD & BACKUP SETTINGS SHEET -->
+                <section id="tab-sheet-settings" class="tab-sheet hidden">
+                    <!-- Folio Profile Management (Full Width Card) -->
+                    <div class="glass p-20 mb-20">
+                        <h4>Folio Profile Manager</h4>
+                        <p class="desc mt-5">Create, switch, or delete custom portfolio profiles to maintain separate investment folio states (e.g. Retirement, Trading, Family).</p>
+                        <div class="form-row-3 mt-15 align-end">
+                            <div class="form-group">
+                                <label for="settings-profile-select">Switch Active Portfolio</label>
+                                <select id="settings-profile-select" class="profile-select-dropdown">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-profile-name">Create New Portfolio Profile</label>
+                                <input type="text" id="new-profile-name" placeholder="e.g. Retirement Savings">
+                            </div>
+                            <div class="form-group flex-row gap-10">
+                                <button id="btn-create-profile" class="btn btn-primary btn-full" style="height: 38px;">Create Profile</button>
+                                <button id="btn-delete-profile" class="btn btn-rose btn-full" style="height: 38px;">Delete Active</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-columns">
+                        <!-- Uploader -->
+                        <div class="column-left glass">
+                            <h4>Upload Holding Spreadsheets</h4>
+                            <p class="desc mt-5">Select the target asset class and drop your transaction CSV or Excel spreadsheets to parse them instantly into the ledger.</p>
+                            
+                            <div class="form-group mt-15">
+                                <label for="upload-asset-class">Asset Class Target</label>
+                                <select id="upload-asset-class">
+                                    <option value="STOCK">Direct Stocks</option>
+                                    <option value="MUTUAL_FUND">Mutual Funds</option>
+                                    <option value="ETF">Equity Index ETFs</option>
+                                    <option value="GOLD_ETF">Gold ETFs</option>
+                                </select>
+                            </div>
+
+                            <div class="file-dropzone mt-15" id="file-uploader-zone">
+                                <input type="file" id="file-uploader-input" accept=".csv, .xlsx, .xls">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-10"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <p class="mt-10">Drag and drop file or click to browse</p>
+                                <span class="file-limit">Supports Excel (.xlsx, .xls) and CSV (.csv) | Size &lt; 5MB</span>
+                            </div>
+                            <div id="upload-status-display" class="mt-10 text-neutral"></div>
+                            <button id="btn-upload-submit" class="btn btn-primary mt-15 btn-full">Import Spreadsheet Records</button>
+                        </div>
+
+                        <!-- Manual Add Form & Database Backup operations -->
+                        <div class="column-right glass flex-column justify-between">
+                            <div>
+                                <h4>Add Custom Holding Manually</h4>
+                                <div class="manual-form mt-15">
+                                    <div class="form-row-2">
+                                        <div class="form-group">
+                                            <label for="manual-class">Asset Class</label>
+                                            <select id="manual-class">
+                                                <option value="STOCK">Stock</option>
+                                                <option value="MUTUAL_FUND">Mutual Fund</option>
+                                                <option value="ETF">ETF</option>
+                                                <option value="GOLD_ETF">Gold ETF</option>
+                                                <option value="CASH">Cash</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="manual-symbol">Symbol/Code</label>
+                                            <input type="text" id="manual-symbol" placeholder="e.g. INFOSYS">
+                                        </div>
+                                    </div>
+                                    <div class="form-group mt-10">
+                                        <label for="manual-name">Asset Name</label>
+                                        <input type="text" id="manual-name" placeholder="e.g. Infosys Limited">
+                                    </div>
+                                    <div class="form-row-3 mt-10">
+                                        <div class="form-group">
+                                            <label for="manual-qty">Qty/Units</label>
+                                            <input type="number" id="manual-qty" step="any" placeholder="0.0">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="manual-price">Buy Price</label>
+                                            <input type="number" id="manual-price" step="any" placeholder="₹0.00">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="manual-date">Buy Date</label>
+                                            <input type="date" id="manual-date">
+                                        </div>
+                                    </div>
+                                    <button id="btn-manual-add" class="btn btn-secondary mt-15 btn-full">Insert Transaction</button>
+                                </div>
+                            </div>
+                            
+                            <div class="border-top mt-20 pt-20">
+                                <h4>Reset & Clear Portfolio Category</h4>
+                                <p class="desc mt-5">Select an asset category to permanently wipe all of its transactions in the active folio profile.</p>
+                                <div class="form-row-2 mt-15 align-end">
+                                    <div class="form-group">
+                                        <label for="clear-section-select">Wipe Category</label>
+                                        <select id="clear-section-select">
+                                            <option value="STOCK">Direct Stocks Only</option>
+                                            <option value="MUTUAL_FUND">Mutual Funds Only</option>
+                                            <option value="ETF_ALL">ETFs & Gold Only</option>
+                                            <option value="ALL">Entire Portfolio (All Categories)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <button id="btn-clear-section" class="btn btn-rose btn-full" style="height: 38px;">Wipe Category Data</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="border-top mt-20 pt-20">
+                                <h4>Platform Backup & Core Maintenance</h4>
+                                <p class="desc mt-5">Create rolling restoration backups of database states and secure logs.</p>
+                                <button id="btn-db-backup" class="btn btn-secondary mt-10 btn-full">Trigger Daily Database Backup</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audit Trail logs -->
+                    <div class="glass mt-20 p-20 overflow-x">
+                        <h4>Security Audit Log (Last 50 changes)</h4>
+                        <table class="table mt-15" id="table-audit-trail">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Action IP</th>
+                                    <th>Action Log Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Application Controller Logic -->
+    <script src="app_v7.js"></script>
+</body>
+</html>
