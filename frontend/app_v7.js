@@ -3,10 +3,10 @@ let authToken = localStorage.getItem("token") || "";
 let activeTab = "dashboard";
 let chartInstances = {};
 
-const API_BASE = window.location.origin;
+const API_BASE = "https://wealthadvisor-5i6v.onrender.com";
 
 // Run in serverless client-side mode with Firebase DB
-let isDemoMode = true;
+let isDemoMode = false;
 
 // Firebase Configuration
 const firebaseConfig = {
