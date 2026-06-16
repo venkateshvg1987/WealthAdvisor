@@ -601,8 +601,13 @@ async function handleLogin() {
         loginBtn.innerText = "Authenticating...";
         loginBtn.disabled = true;
 
+        let email = emailInput;
+        if (!email.includes("@")) {
+            email = email.toLowerCase() + "@platform.in";
+        }
+
         const formData = new URLSearchParams();
-        formData.append("username", emailInput);
+        formData.append("username", email);
         formData.append("password", password);
 
         try {
@@ -616,7 +621,7 @@ async function handleLogin() {
                 // Try registering the user if the login failed
                 const regResponse = await fetch(`${API_BASE}/api/auth/register`, {
                     method: "POST",
-                    body: JSON.stringify({ email: emailInput, password: password }),
+                    body: JSON.stringify({ email: email, password: password }),
                     headers: { "Content-Type": "application/json" }
                 });
 
@@ -636,7 +641,7 @@ async function handleLogin() {
                     }
                 }
                 
-                const err = await response.json();
+                const err = await response.json().catch(() => ({ detail: "Authentication failed" }));
                 throw new Error(err.detail || "Authentication failed");
             }
 
@@ -645,7 +650,7 @@ async function handleLogin() {
             localStorage.setItem("token", authToken);
             initFirebaseState();
         } catch (err) {
-            alert(err.message);
+            alert(err.message || err);
         } finally {
             loginBtn.innerText = "Authenticate Access";
             loginBtn.disabled = false;
