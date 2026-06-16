@@ -46,6 +46,28 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initFirebaseState() {
+    if (isDemoMode === false) {
+        const token = localStorage.getItem("token");
+        if (token) {
+            authToken = token;
+            document.getElementById("ai-status-badge").innerText = "Online | Cloud Connected";
+            document.getElementById("ai-status-badge").className = "badge badge-green";
+            
+            document.querySelector(".user-avatar").innerText = "IN";
+            document.querySelector(".user-name").innerText = "Investor";
+            document.querySelector(".user-email").innerText = "investor@platform.in";
+            
+            document.getElementById("login-container").classList.add("hidden");
+            document.getElementById("app-container").classList.remove("hidden");
+            
+            loadActiveTabData();
+        } else {
+            document.getElementById("login-container").classList.remove("hidden");
+            document.getElementById("app-container").classList.add("hidden");
+        }
+        return;
+    }
+
     if (typeof firebase === 'undefined') {
         console.log("► Firebase SDK not loaded. Loading local offline mode.");
         document.getElementById("ai-status-badge").innerText = "Offline | Local Mode";
@@ -442,10 +464,28 @@ async function apiFetch(endpoint, options = {}) {
     if (isDemoMode) {
         return handleDemoRequest(endpoint, options);
     }
+
+    if (!options.headers) options.headers = {};
+    if (authToken) {
+        options.headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const response = await fetch(`${API_BASE}${endpoint}`, options);
+    if (response.status === 401) {
+        logout();
+        throw new Error("Unauthorized/Session expired");
+    }
+    if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || "API Request Failed");
+    }
+    return response;
 }
 
 function logout() {
     localStorage.removeItem("local_login");
+    localStorage.removeItem("token");
+    authToken = "";
     if (typeof firebase !== 'undefined' && firebase.auth) {
         firebase.auth().signOut().then(() => {
             window.location.reload();
@@ -553,6 +593,63 @@ async function handleLogin() {
 
     if (!emailInput || !password) {
         alert("Please enter credentials.");
+        return;
+    }
+
+    if (isDemoMode === false) {
+        const loginBtn = document.getElementById("btn-login");
+        loginBtn.innerText = "Authenticating...";
+        loginBtn.disabled = true;
+
+        const formData = new URLSearchParams();
+        formData.append("username", emailInput);
+        formData.append("password", password);
+
+        try {
+            const response = await fetch(`${API_BASE}/api/auth/login`, {
+                method: "POST",
+                body: formData,
+                headers: { "Content-Type": "application/x-www-form-urlencoded" }
+            });
+
+            if (!response.ok) {
+                // Try registering the user if the login failed
+                const regResponse = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: "POST",
+                    body: JSON.stringify({ email: emailInput, password: password }),
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                if (regResponse.ok) {
+                    // Registration succeeded, retry login
+                    const retryResponse = await fetch(`${API_BASE}/api/auth/login`, {
+                        method: "POST",
+                        body: formData,
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+                    });
+                    if (retryResponse.ok) {
+                        const data = await retryResponse.json();
+                        authToken = data.access_token;
+                        localStorage.setItem("token", authToken);
+                        initFirebaseState();
+                        return;
+                    }
+                }
+                
+                const err = await response.json();
+                throw new Error(err.detail || "Authentication failed");
+            }
+
+            const data = await response.json();
+            authToken = data.access_token;
+            localStorage.setItem("token", authToken);
+            initFirebaseState();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            loginBtn.innerText = "Authenticate Access";
+            loginBtn.disabled = false;
+        }
         return;
     }
 
@@ -2763,6 +2860,35 @@ async function handleFileUpload() {
         };
         reader.readAsArrayBuffer(file);
         return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const statusEl = document.getElementById("upload-status-display");
+    statusEl.innerText = "Uploading...";
+
+    try {
+        const response = await fetch(`${API_BASE}/api/portfolio/upload?asset_class=${assetClass}`, {
+            method: "POST",
+            body: formData,
+            headers: { "Authorization": `Bearer ${authToken}` }
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || "Upload failed");
+        }
+
+        const res = await response.json();
+        alert(res.message || "Upload completed successfully!");
+        statusEl.innerText = "Upload completed.";
+        fileInput.value = "";
+        loadActiveTabData();
+    } catch (err) {
+        alert(err.message);
+        statusEl.innerText = "Upload failed.";
     }
 }
 
