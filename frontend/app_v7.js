@@ -611,27 +611,43 @@ async function handleLogin() {
         formData.append("password", password);
 
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout
+
             const response = await fetch(`${API_BASE}/api/auth/login`, {
                 method: "POST",
                 body: formData,
-                headers: { "Content-Type": "application/x-www-form-urlencoded" }
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 // Try registering the user if the login failed
+                const regController = new AbortController();
+                const regTimeoutId = setTimeout(() => regController.abort(), 8000);
+                
                 const regResponse = await fetch(`${API_BASE}/api/auth/register`, {
                     method: "POST",
                     body: JSON.stringify({ email: email, password: password }),
-                    headers: { "Content-Type": "application/json" }
+                    headers: { "Content-Type": "application/json" },
+                    signal: regController.signal
                 });
+                clearTimeout(regTimeoutId);
 
                 if (regResponse.ok) {
                     // Registration succeeded, retry login
+                    const retryController = new AbortController();
+                    const retryTimeoutId = setTimeout(() => retryController.abort(), 8000);
+                    
                     const retryResponse = await fetch(`${API_BASE}/api/auth/login`, {
                         method: "POST",
                         body: formData,
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        signal: retryController.signal
                     });
+                    clearTimeout(retryTimeoutId);
+                    
                     if (retryResponse.ok) {
                         const data = await retryResponse.json();
                         authToken = data.access_token;
@@ -650,7 +666,25 @@ async function handleLogin() {
             localStorage.setItem("token", authToken);
             initFirebaseState();
         } catch (err) {
-            alert(err.message || err);
+            console.error("Backend connection failed, offering offline mode:", err);
+            const useLocal = confirm("Could not connect to live backend (Render may be sleeping or starting up). Would you like to run in Local Offline/Demo Mode instead?");
+            if (useLocal) {
+                isDemoMode = true;
+                // Process local authentication
+                if (emailInput === "Admin" && password === "Admin@123") {
+                    localStorage.setItem("local_login", "true");
+                    document.getElementById("login-container").classList.add("hidden");
+                    document.getElementById("app-container").classList.remove("hidden");
+                    document.getElementById("ai-status-badge").innerText = "Offline | Local Mode";
+                    document.getElementById("ai-status-badge").className = "badge badge-yellow";
+                    document.querySelector(".user-avatar").innerText = "L";
+                    document.querySelector(".user-name").innerText = "Local Investor";
+                    document.querySelector(".user-email").innerText = "local-session@offline";
+                    loadLocalStorageData();
+                } else {
+                    alert("Local Offline Mode default credentials are: Admin / Admin@123");
+                }
+            }
         } finally {
             loginBtn.innerText = "Authenticate Access";
             loginBtn.disabled = false;
